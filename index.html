@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сумма прописью</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='10' fill='orange'/><text x='50' y='70' font-family='Arial' font-size='60' text-anchor='middle' fill='white'>🦏</text></svg>">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .container {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f4fc;
+            border-radius: 4px;
+            border-left: 4px solid #3498db;
+        }
+        .error {
+            color: #e74c3c;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Сумма прописью</h1>
+        <p>Введите числовую сумму:</p>
+        <input type="number" id="amount" placeholder="Например: 1234.56" step="0.01" min="0">
+        <button onclick="convertToWords()">Преобразовать</button>
+        <div id="result"></div>
+    </div>
+<footer style="background-color: #f8f9fa; padding: 20px 0; text-align: center; border-top: 1px solid #e9ecef; margin-top: 40px;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 0 15px;">
+        <span style="color: #6c757d; font-size: 14px;">&copy; Terre & Co, 2025</span>
+    </div>
+</footer>
+    <script>
+        function convertToWords() {
+            const amountInput = document.getElementById('amount');
+            const resultDiv = document.getElementById('result');
+            
+            // Очищаем предыдущий результат
+            resultDiv.innerHTML = '';
+            resultDiv.className = '';
+            
+            // Проверяем, что введено значение
+            if (!amountInput.value) {
+                resultDiv.textContent = 'Пожалуйста, введите сумму';
+                resultDiv.className = 'error';
+                return;
+            }
+            
+            const amount = parseFloat(amountInput.value);
+            
+            // Проверяем, что сумма положительная
+            if (amount < 0) {
+                resultDiv.textContent = 'Сумма должна быть положительной';
+                resultDiv.className = 'error';
+                return;
+            }
+            
+            // Преобразуем сумму в пропись
+            try {
+                const amountInWords = numberToWords(amount);
+                resultDiv.innerHTML = `<strong>Результат:</strong><br>${amountInWords}`;
+            } catch (e) {
+                resultDiv.textContent = 'Произошла ошибка при преобразовании';
+                resultDiv.className = 'error';
+                console.error(e);
+            }
+        }
+        
+        function numberToWords(num) {
+            // Разделяем число на рубли и копейки
+            const rub = Math.floor(num);
+            const kop = Math.round((num - rub) * 100);
+            
+            // Преобразуем рубли и копейки в текст
+            const rubText = numToWords(rub, true);
+            const kopText = numToWords(kop, false);
+            
+            // Формируем результат
+            let result = rubText + ' ' + rublej(rub);
+            if (kop > 0) {
+                result += ' ' + kopText + ' ' + kopeek(kop);
+            }
+            
+            return result.charAt(0).toUpperCase() + result.slice(1);
+        }
+        
+        function numToWords(num, isRub) {
+            const units = ['', 'один', 'два', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять'];
+            const unitsFemale = ['', 'одна', 'две', 'три', 'четыре', 'пять', 'шесть', 'семь', 'восемь', 'девять'];
+            const teens = ['десять', 'одиннадцать', 'двенадцать', 'тринадцать', 'четырнадцать', 
+                          'пятнадцать', 'шестнадцать', 'семнадцать', 'восемнадцать', 'девятнадцать'];
+            const tens = ['', 'десять', 'двадцать', 'тридцать', 'сорок', 'пятьдесят', 
+                          'шестьдесят', 'семьдесят', 'восемьдесят', 'девяносто'];
+            const hundreds = ['', 'сто', 'двести', 'триста', 'четыреста', 'пятьсот', 
+                              'шестьсот', 'семьсот', 'восемьсот', 'девятьсот'];
+            
+            const scales = [
+                ['', '', ''],
+                ['тысяча', 'тысячи', 'тысяч'],
+                ['миллион', 'миллиона', 'миллионов'],
+                ['миллиард', 'миллиарда', 'миллиардов'],
+                ['триллион', 'триллиона', 'триллионов']
+            ];
+            
+            if (num === 0) return 'ноль';
+            
+            let words = [];
+            let scaleIndex = 0;
+            let originalNum = num;
+            
+            while (num > 0) {
+                const chunk = num % 1000;
+                num = Math.floor(num / 1000);
+                
+                if (chunk !== 0) {
+                    let chunkWords = [];
+                    
+                    // Сотни
+                    const hundred = Math.floor(chunk / 100);
+                    if (hundred > 0) {
+                        chunkWords.push(hundreds[hundred]);
+                    }
+                    
+                    // Десятки и единицы
+                    const remainder = chunk % 100;
+                    if (remainder < 10) {
+                        const unit = isRub || scaleIndex !== 1 ? units[remainder] : unitsFemale[remainder];
+                        if (unit) chunkWords.push(unit);
+                    } else if (remainder < 20) {
+                        chunkWords.push(teens[remainder - 10]);
+                    } else {
+                        const ten = Math.floor(remainder / 10);
+                        const unit = remainder % 10;
+                        chunkWords.push(tens[ten]);
+                        if (unit > 0) {
+                            const unitWord = isRub || scaleIndex !== 1 ? units[unit] : unitsFemale[unit];
+                            chunkWords.push(unitWord);
+                        }
+                    }
+                    
+                    // Добавляем масштаб (тысячи, миллионы и т.д.)
+                    if (scaleIndex > 0) {
+                        const scaleForms = scales[scaleIndex];
+                        const scaleWord = getScaleWord(chunk, scaleForms);
+                        chunkWords.push(scaleWord);
+                    }
+                    
+                    words.unshift(chunkWords.join(' '));
+                }
+                
+                scaleIndex++;
+            }
+            
+            return words.join(' ');
+        }
+        
+        function getScaleWord(num, forms) {
+            const lastTwo = num % 100;
+            const lastOne = num % 10;
+            
+            if (lastTwo >= 11 && lastTwo <= 19) {
+                return forms[2];
+            }
+            
+            switch (lastOne) {
+                case 1: return forms[0];
+                case 2:
+                case 3:
+                case 4: return forms[1];
+                default: return forms[2];
+            }
+        }
+        
+        function rublej(num) {
+            const lastTwo = num % 100;
+            const lastOne = num % 10;
+            
+            if (lastTwo >= 11 && lastTwo <= 19) {
+                return 'рублей';
+            }
+            
+            switch (lastOne) {
+                case 1: return 'рубль';
+                case 2:
+                case 3:
+                case 4: return 'рубля';
+                default: return 'рублей';
+            }
+        }
+        
+        function kopeek(num) {
+            const lastTwo = num % 100;
+            const lastOne = num % 10;
+            
+            if (lastTwo >= 11 && lastTwo <= 19) {
+                return 'копеек';
+            }
+            
+            switch (lastOne) {
+                case 1: return 'копейка';
+                case 2:
+                case 3:
+                case 4: return 'копейки';
+                default: return 'копеек';
+            }
+        }
+    </script>
+</body>
+</html>
